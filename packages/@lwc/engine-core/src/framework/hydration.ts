@@ -421,7 +421,8 @@ function validateClassAttr(vnode: VBaseElement, elm: Element, renderer: Renderer
     let nodesAreCompatible = true;
     let vnodeClassName;
 
-    if (!isUndefined(className) && String(className) !== getProperty(elm, 'className')) {
+    const elmClassName = getProperty(elm, 'className');
+    if (!isUndefined(className) && String(className) !== elmClassName) {
         // className is used when class is bound to an expr.
         nodesAreCompatible = false;
         vnodeClassName = className;
@@ -443,6 +444,9 @@ function validateClassAttr(vnode: VBaseElement, elm: Element, renderer: Renderer
         if (classList.length > keys(classMap).length) {
             nodesAreCompatible = false;
         }
+    } else if (isUndefined(className) && elmClassName !== '') {
+        nodesAreCompatible = false;
+        vnodeClassName = '';
     }
 
     if (!nodesAreCompatible) {
