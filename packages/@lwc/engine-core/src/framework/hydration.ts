@@ -415,6 +415,8 @@ function validateClassAttr(vnode: VBaseElement, elm: Element, renderer: Renderer
                 ...classMap,
                 [scopedToken]: true,
             };
+        } else {
+            className = scopedToken;
         }
     }
 
