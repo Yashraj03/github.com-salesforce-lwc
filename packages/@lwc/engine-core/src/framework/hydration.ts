@@ -357,11 +357,11 @@ function isMatchingElement(vnode: VBaseElement, elm: Element, renderer: Renderer
         return false;
     }
 
-    const hasIncompatibleAttrs = validateAttrs(vnode, elm, renderer);
-    const hasIncompatibleClass = validateClassAttr(vnode, elm, renderer);
-    const hasIncompatibleStyle = validateStyleAttr(vnode, elm, renderer);
+    const hasCompatibleAttrs = validateAttrs(vnode, elm, renderer);
+    const hasCompatibleClass = validateClassAttr(vnode, elm, renderer);
+    const hasCompatibleStyle = validateStyleAttr(vnode, elm, renderer);
 
-    return hasIncompatibleAttrs && hasIncompatibleClass && hasIncompatibleStyle;
+    return hasCompatibleAttrs && hasCompatibleClass && hasCompatibleStyle;
 }
 
 function validateAttrs(vnode: VBaseElement, elm: Element, renderer: RendererAPI): boolean {
