@@ -1,9 +1,0 @@
-:host {
-    padding: 0;
-}
-
-@media (max-width: 48em) {
-    :host {
-        padding: 8px;
-    }
-}
