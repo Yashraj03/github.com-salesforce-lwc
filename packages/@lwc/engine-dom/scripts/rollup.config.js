@@ -8,13 +8,15 @@
 /* eslint-env node */
 
 const path = require('path');
+const fs = require('fs');
 const { nodeResolve } = require('@rollup/plugin-node-resolve');
 const replace = require('@rollup/plugin-replace');
 const typescript = require('../../../../scripts/rollup/typescript');
 const writeDistAndTypes = require('../../../../scripts/rollup/writeDistAndTypes');
 const lwcFeatures = require('../../../../scripts/rollup/lwcFeatures');
 const { version } = require('../package.json');
-const renderer = require('../dist/renderer');
+
+const renderer = fs.readFileSync(path.resolve(__dirname, '../dist/renderer.js'), 'UTF-8');
 
 const banner = `/* proxy-compat-disable */`;
 const footer = `/* version: ${version} */`;
@@ -42,7 +44,7 @@ module.exports = {
         replace({
             values: {
                 'process.env.IS_BROWSER': 'true',
-                'process.env.RENDERER': renderer,
+                'process.env.RENDERER': renderer.replace('var renderer =', ''),
             },
             preventAssignment: true,
         }),
