@@ -22,6 +22,7 @@ const features: FeatureFlagMap = {
     ENABLE_LIGHT_GET_ROOT_NODE_PATCH: null,
     DISABLE_LIGHT_DOM_UNSCOPED_CSS: null,
     ENABLE_SCOPED_CUSTOM_ELEMENT_REGISTRY: null,
+    ENABLE_PROGRAMMATIC_STYLESHEETS: null,
 };
 
 if (!globalThis.lwcRuntimeFlags) {

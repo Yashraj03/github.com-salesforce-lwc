@@ -111,6 +111,13 @@ export interface FeatureFlagMap {
      * If this flag is disabled, then LWC components with the same tag name as third-party custom elements may conflict.
      */
     ENABLE_SCOPED_CUSTOM_ELEMENT_REGISTRY: FeatureFlagValue;
+
+    /**
+     * Flag to enable programmatic stylesheets, aka dynamic stylesheet injection, aka CSS extensibility. Allows
+     * for a `static stylesheets` property at the component level that injects stylesheets alongside the template
+     * stylsheets.
+     */
+    ENABLE_PROGRAMMATIC_STYLESHEETS: FeatureFlagValue;
 }
 
 export type FeatureFlagName = keyof FeatureFlagMap;
