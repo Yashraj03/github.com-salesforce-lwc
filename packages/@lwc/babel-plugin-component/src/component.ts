@@ -4,18 +4,18 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-const { basename, extname } = require('path');
+import { basename, extname } from 'path';
 
-const moduleImports = require('@babel/helper-module-imports');
+import moduleImports from '@babel/helper-module-imports';
 
-const { LWC_PACKAGE_ALIAS, REGISTER_COMPONENT_ID, TEMPLATE_KEY } = require('./constants');
+import { LWC_PACKAGE_ALIAS, REGISTER_COMPONENT_ID, TEMPLATE_KEY } from './constants';
 
-function getBaseName(classPath) {
+function getBaseName(classPath: any) {
     const ext = extname(classPath);
     return basename(classPath, ext);
 }
 
-function importDefaultTemplate(path, state) {
+function importDefaultTemplate(path: any, state: any) {
     const { filename } = state.file.opts;
     const componentName = getBaseName(filename);
     return moduleImports.addDefault(path, `./${componentName}.html`, {
@@ -23,7 +23,7 @@ function importDefaultTemplate(path, state) {
     });
 }
 
-function needsComponentRegistration(path) {
+function needsComponentRegistration(path: any) {
     return (
         (path.isIdentifier() && path.node.name !== 'undefined' && path.node.name !== 'null') ||
         path.isCallExpression() ||
@@ -32,8 +32,8 @@ function needsComponentRegistration(path) {
     );
 }
 
-module.exports = function ({ types: t }) {
-    function createRegisterComponent(declarationPath, state) {
+export default function ({ types: t }: any) {
+    function createRegisterComponent(declarationPath: any, state: any) {
         const registerComponentId = moduleImports.addNamed(
             declarationPath,
             REGISTER_COMPONENT_ID,
@@ -61,7 +61,7 @@ module.exports = function ({ types: t }) {
     }
 
     return {
-        ExportDefaultDeclaration(path, state) {
+        ExportDefaultDeclaration(path: any, state: any) {
             const implicitResolution = !state.opts.isExplicitImport;
             if (implicitResolution) {
                 const declaration = path.get('declaration');
@@ -71,4 +71,4 @@ module.exports = function ({ types: t }) {
             }
         },
     };
-};
+}

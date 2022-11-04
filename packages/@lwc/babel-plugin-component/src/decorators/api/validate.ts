@@ -4,21 +4,22 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-const { DecoratorErrors } = require('@lwc/errors');
+import { DecoratorErrors } from '@lwc/errors';
 
-const { generateError } = require('../../utils');
-const {
+import { generateError } from '../../utils';
+import {
     AMBIGUOUS_PROP_SET,
     DISALLOWED_PROP_SET,
-    LWC_PACKAGE_EXPORTS: { TRACK_DECORATOR },
+    LWC_PACKAGE_EXPORTS,
     DECORATOR_TYPES,
-} = require('../../constants');
+} from '../../constants';
 
-const { isApiDecorator } = require('./shared');
+import { isApiDecorator } from './shared';
 
-function validateConflict(path, decorators) {
+const { TRACK_DECORATOR } = LWC_PACKAGE_EXPORTS;
+function validateConflict(path: any, decorators: any) {
     const isPublicFieldTracked = decorators.some(
-        (decorator) =>
+        (decorator: any) =>
             decorator.name === TRACK_DECORATOR &&
             decorator.path.parentPath.node === path.parentPath.node
     );
@@ -30,12 +31,12 @@ function validateConflict(path, decorators) {
     }
 }
 
-function isBooleanPropDefaultTrue(property) {
+function isBooleanPropDefaultTrue(property: any) {
     const propertyValue = property.node.value;
     return propertyValue && propertyValue.type === 'BooleanLiteral' && propertyValue.value;
 }
 
-function validatePropertyValue(property) {
+function validatePropertyValue(property: any) {
     if (isBooleanPropDefaultTrue(property)) {
         throw generateError(property, {
             errorInfo: DecoratorErrors.INVALID_BOOLEAN_PUBLIC_PROPERTY,
@@ -43,7 +44,7 @@ function validatePropertyValue(property) {
     }
 }
 
-function validatePropertyName(property) {
+function validatePropertyName(property: any) {
     if (property.node.computed) {
         throw generateError(property, {
             errorInfo: DecoratorErrors.PROPERTY_CANNOT_BE_COMPUTED,
@@ -81,11 +82,11 @@ function validatePropertyName(property) {
     }
 }
 
-function validateSingleApiDecoratorOnSetterGetterPair(decorators) {
+function validateSingleApiDecoratorOnSetterGetterPair(decorators: any) {
     // keep track of visited class methods
     const visitedMethods = new Set();
 
-    decorators.forEach((decorator) => {
+    decorators.forEach((decorator: any) => {
         const { path, decoratedNodeType } = decorator;
 
         // since we are validating get/set we only look at @api methods
@@ -109,7 +110,7 @@ function validateSingleApiDecoratorOnSetterGetterPair(decorators) {
     });
 }
 
-function validateUniqueness(decorators) {
+function validateUniqueness(decorators: any) {
     const apiDecorators = decorators.filter(isApiDecorator);
     for (let i = 0; i < apiDecorators.length; i++) {
         const { path: currentPath, type: currentType } = apiDecorators[i];
@@ -138,13 +139,13 @@ function validateUniqueness(decorators) {
     }
 }
 
-module.exports = function validate(decorators) {
+export default function validate(decorators: any) {
     const apiDecorators = decorators.filter(isApiDecorator);
     if (apiDecorators.length === 0) {
         return;
     }
 
-    apiDecorators.forEach(({ path, decoratedNodeType }) => {
+    apiDecorators.forEach(({ path, decoratedNodeType }: any) => {
         validateConflict(path, decorators);
 
         if (decoratedNodeType !== DECORATOR_TYPES.METHOD) {
@@ -157,4 +158,4 @@ module.exports = function validate(decorators) {
 
     validateSingleApiDecoratorOnSetterGetterPair(decorators);
     validateUniqueness(decorators);
-};
+}

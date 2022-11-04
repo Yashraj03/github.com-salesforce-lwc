@@ -4,16 +4,16 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-const moduleImports = require('@babel/helper-module-imports');
-const { LWCClassErrors } = require('@lwc/errors');
+import moduleImports from '@babel/helper-module-imports';
+import { LWCClassErrors } from '@lwc/errors';
 
-const { generateError } = require('./utils');
+import { generateError } from './utils';
 
-function getImportSource(path) {
+function getImportSource(path: any) {
     return path.parentPath.get('arguments.0');
 }
 
-function validateImport(sourcePath) {
+function validateImport(sourcePath: any) {
     if (!sourcePath.isStringLiteral()) {
         throw generateError(sourcePath, {
             errorInfo: LWCClassErrors.INVALID_DYNAMIC_IMPORT_SOURCE_STRICT,
@@ -25,15 +25,15 @@ function validateImport(sourcePath) {
  * Expected API for this plugin:
  * { dynamicImports: { loader: string, strictSpecifier: boolean } }
  */
-module.exports = function () {
-    function getLoaderRef(path, loaderName, state) {
+export default function () {
+    function getLoaderRef(path: any, loaderName: any, state: any) {
         if (!state.loaderRef) {
             state.loaderRef = moduleImports.addNamed(path, 'load', loaderName);
         }
         return state.loaderRef;
     }
 
-    function addDynamicImportDependency(dependency, state) {
+    function addDynamicImportDependency(dependency: any, state: any) {
         if (!state.dynamicImports) {
             state.dynamicImports = [];
         }
@@ -44,7 +44,7 @@ module.exports = function () {
     }
 
     return {
-        Import(path, state) {
+        Import(path: any, state: any) {
             const { dynamicImports } = state.opts;
             if (!dynamicImports) {
                 return;
@@ -67,4 +67,4 @@ module.exports = function () {
             }
         },
     };
-};
+}

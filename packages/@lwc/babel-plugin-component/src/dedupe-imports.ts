@@ -5,18 +5,18 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-function defaultImport(t, specifiers) {
-    const defaultImport = specifiers.find((s) => t.isImportDefaultSpecifier(s));
+function defaultImport(t: any, specifiers: any) {
+    const defaultImport = specifiers.find((s: any) => t.isImportDefaultSpecifier(s));
     return defaultImport && defaultImport.local.name;
 }
 
-module.exports = function ({ types: t }) {
-    return function (path) {
+export default function ({ types: t }: any) {
+    return function (path: any) {
         const body = path.get('body');
-        const importStatements = body.filter((s) => s.isImportDeclaration());
+        const importStatements = body.filter((s: any) => s.isImportDeclaration());
         const visited = new Map();
 
-        importStatements.forEach((importPath) => {
+        importStatements.forEach((importPath: any) => {
             const sourceLiteral = importPath.node.source;
 
             // If the import is of the type import * as X, just ignore it since we can't dedupe
@@ -32,7 +32,7 @@ module.exports = function ({ types: t }) {
 
                 // We merge all the named imports unless is a default with the same name
                 let canImportBeRemoved = true;
-                importPath.node.specifiers.forEach((s) => {
+                importPath.node.specifiers.forEach((s: any) => {
                     if (visitedDefaultImport && t.isImportDefaultSpecifier(s)) {
                         if (visitedDefaultImport !== s.local.name) {
                             canImportBeRemoved = false;
@@ -47,10 +47,10 @@ module.exports = function ({ types: t }) {
                 }
 
                 // We need to sort the imports due to a bug in babel where default must be first
-                visitedSpecifiers.sort((a) => (t.isImportDefaultSpecifier(a) ? -1 : 1));
+                visitedSpecifiers.sort((a: any) => (t.isImportDefaultSpecifier(a) ? -1 : 1));
             } else {
                 visited.set(sourceLiteral.value, importPath);
             }
         });
     };
-};
+}

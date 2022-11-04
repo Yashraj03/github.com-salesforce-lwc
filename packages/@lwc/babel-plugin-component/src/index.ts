@@ -4,26 +4,32 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-const component = require('./component');
-const {
+
+import component from './component';
+import {
     decorators,
     removeImportedDecoratorSpecifiers,
     validateImportedLwcDecoratorUsage,
-} = require('./decorators');
-const dedupeImports = require('./dedupe-imports');
-const dynamicImports = require('./dynamic-imports');
-const compilerVersionNumber = require('./compiler-version-number');
-const { getEngineImportSpecifiers } = require('./utils');
+} from './decorators';
+import dedupeImports from './dedupe-imports';
+import dynamicImports from './dynamic-imports';
+import compilerVersionNumber from './compiler-version-number';
+import { getEngineImportSpecifiers } from './utils';
+
+import type { PluginObj } from '@babel/core';
+import type * as BabelCoreNamespace from '@babel/core';
+
+export type Babel = typeof BabelCoreNamespace;
 
 /**
  * The transform is done in 2 passes:
  *    - First, apply in a single AST traversal the decorators and the component transformation.
  *    - Then, in a second path transform class properties using the official babel plugin "babel-plugin-transform-class-properties".
  */
-module.exports = function LwcClassTransform(api) {
+export function LwcClassTransform(api: Babel): PluginObj {
     const { ExportDefaultDeclaration: transformCreateRegisterComponent } = component(api);
-    const { Class: transformDecorators } = decorators(api);
-    const { Import: transformDynamicImports } = dynamicImports(api);
+    const { Class: transformDecorators } = decorators();
+    const { Import: transformDynamicImports } = dynamicImports();
     const { ClassBody: addCompilerVersionNumber } = compilerVersionNumber(api);
 
     return {
@@ -70,4 +76,4 @@ module.exports = function LwcClassTransform(api) {
             },
         },
     };
-};
+}

@@ -4,35 +4,33 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-const moduleImports = require('@babel/helper-module-imports');
-const { DecoratorErrors } = require('@lwc/errors');
+import moduleImports from '@babel/helper-module-imports';
+import * as t from '@babel/types';
+import { DecoratorErrors } from '@lwc/errors';
 
-const { DECORATOR_TYPES, LWC_PACKAGE_ALIAS, REGISTER_DECORATORS_ID } = require('../constants');
-const {
-    generateError,
-    isClassMethod,
-    isSetterClassMethod,
-    isGetterClassMethod,
-} = require('../utils');
+import { NodePath } from '@babel/core';
+import { isArray } from '@lwc/shared';
+import { DECORATOR_TYPES, LWC_PACKAGE_ALIAS, REGISTER_DECORATORS_ID } from '../constants';
+import { generateError, isClassMethod, isSetterClassMethod, isGetterClassMethod } from '../utils';
 
-const api = require('./api');
-const wire = require('./wire');
-const track = require('./track');
+import * as api from './api';
+import * as wire from './wire';
+import * as track from './track';
 
 const DECORATOR_TRANSFORMS = [api, wire, track];
 const AVAILABLE_DECORATORS = DECORATOR_TRANSFORMS.map((transform) => transform.name).join(', ');
 
-function isLwcDecoratorName(name) {
+function isLwcDecoratorName(name: string) {
     return DECORATOR_TRANSFORMS.some((transform) => transform.name === name);
 }
 
 /** Returns a list of all the references to an identifier */
-function getReferences(identifier) {
+function getReferences(identifier: t.Identifier) {
     return identifier.scope.getBinding(identifier.node.name).referencePaths;
 }
 
 /** Returns the type of decorator depdending on the property or method if get applied to */
-function getDecoratedNodeType(decoratorPath) {
+function getDecoratedNodeType(decoratorPath: NodePath<t.Decorator>): string {
     const propertyOrMethod = decoratorPath.parentPath;
     if (isClassMethod(propertyOrMethod)) {
         return DECORATOR_TYPES.METHOD;
@@ -142,29 +140,36 @@ function generateInvalidDecoratorError(path) {
     }
 }
 
-function collectDecoratorPaths(bodyItems) {
+function collectDecoratorPaths(bodyItems: NodePath[]): NodePath<t.Decorator>[] {
     return bodyItems.reduce((acc, bodyItem) => {
         const decorators = bodyItem.get('decorators');
-        if (decorators && decorators.length) {
-            acc.push(...decorators);
+        if (isArray(decorators) && decorators.length) {
+            acc.push(...(decorators as NodePath<t.Decorator>[]));
         }
         return acc;
-    }, []);
+    }, [] as NodePath<t.Decorator>[]);
 }
 
-function getDecoratorMetadata(decoratorPath) {
-    const expressionPath = decoratorPath.get('expression');
+interface DecoratorMetadata {
+    name: string;
+    propertyName: string;
+    path: NodePath<t.Decorator>;
+    decoratedNodeType: string;
+}
+
+function getDecoratorMetadata(decoratorPath: NodePath<t.Decorator>): DecoratorMetadata {
+    const expressionPath = decoratorPath.get('expression') as NodePath<t.Expression>;
 
     let name;
     if (expressionPath.isIdentifier()) {
         name = expressionPath.node.name;
-    } else if (expressionPath.isCallExpression()) {
+    } else if (expressionPath.isCallExpression() && t.isIdentifier(expressionPath.node.callee)) {
         name = expressionPath.node.callee.name;
     } else {
         throw generateInvalidDecoratorError(decoratorPath);
     }
 
-    const propertyName = decoratorPath.parent.key.name;
+    const propertyName = (decoratorPath.parent as any).key.name;
     const decoratedNodeType = getDecoratedNodeType(decoratorPath);
 
     return {
@@ -175,17 +180,20 @@ function getDecoratorMetadata(decoratorPath) {
     };
 }
 
-function getMetadataObjectPropertyList(t, decoratorMetas, classBodyItems) {
+function getMetadataObjectPropertyList(
+    decoratorMetas: DecoratorMetadata[],
+    classBodyItems: NodePath[]
+) {
     const list = [
-        ...api.transform(t, decoratorMetas, classBodyItems),
-        ...track.transform(t, decoratorMetas),
-        ...wire.transform(t, decoratorMetas),
+        ...api.transform(decoratorMetas, classBodyItems),
+        ...track.transform(decoratorMetas),
+        ...wire.transform(decoratorMetas),
     ];
 
     const fieldNames = classBodyItems
         .filter((field) => field.isClassProperty({ computed: false, static: false }))
-        .filter((field) => !field.node.decorators)
-        .map((field) => field.node.key.name);
+        .filter((field) => !(field.node as t.ClassProperty).decorators)
+        .map((field) => ((field.node as t.ClassProperty).key as t.Identifier).name);
     if (fieldNames.length) {
         list.push(t.objectProperty(t.identifier('fields'), t.valueToNode(fieldNames)));
     }
@@ -193,8 +201,12 @@ function getMetadataObjectPropertyList(t, decoratorMetas, classBodyItems) {
     return list;
 }
 
-function decorators({ types: t }) {
-    function createRegisterDecoratorsCallExpression(path, classExpression, props) {
+function decorators() {
+    function createRegisterDecoratorsCallExpression(
+        path: NodePath<t.Class>,
+        classExpression: t.Expression | t.Identifier,
+        props: Array<t.ObjectProperty>
+    ): t.CallExpression {
         const id = moduleImports.addNamed(path, REGISTER_DECORATORS_ID, LWC_PACKAGE_ALIAS);
         return t.callExpression(id, [classExpression, t.objectExpression(props)]);
     }
@@ -203,7 +215,7 @@ function decorators({ types: t }) {
     const visitedClasses = new WeakSet();
 
     return {
-        Class(path) {
+        Class(path: NodePath<t.Class>) {
             const { node } = path;
 
             if (visitedClasses.has(node)) {
@@ -212,25 +224,24 @@ function decorators({ types: t }) {
             visitedClasses.add(node);
 
             const classBodyItems = path.get('body.body');
-            if (classBodyItems.length === 0) {
+            if (isArray(classBodyItems) && classBodyItems.length === 0) {
                 return;
             }
 
-            const decoratorPaths = collectDecoratorPaths(classBodyItems);
+            const decoratorPaths = collectDecoratorPaths(classBodyItems as NodePath[]);
             const decoratorMetas = decoratorPaths.map(getDecoratorMetadata);
 
             validate(decoratorMetas);
 
             const metaPropertyList = getMetadataObjectPropertyList(
-                t,
                 decoratorMetas,
-                classBodyItems
+                classBodyItems as NodePath[]
             );
             if (metaPropertyList.length === 0) {
                 return;
             }
 
-            decoratorPaths.forEach((path) => path.remove());
+            decoratorPaths.forEach((path: any) => path.remove());
 
             const isAnonymousClassDeclaration =
                 path.isClassDeclaration() && !path.get('id').isIdentifier();
@@ -245,7 +256,11 @@ function decorators({ types: t }) {
                 // if it does not have an id, we can treat it as a ClassExpression
                 const classExpression = t.toExpression(node);
                 path.replaceWith(
-                    createRegisterDecoratorsCallExpression(path, classExpression, metaPropertyList)
+                    createRegisterDecoratorsCallExpression(
+                        path,
+                        classExpression,
+                        metaPropertyList
+                    ) as any
                 );
             } else {
                 // Example: export default class NamedClass extends LightningElement {}
@@ -254,18 +269,14 @@ function decorators({ types: t }) {
                 //      registerDecorators(NamedClass);
                 // Note: This will be further transformed
                 const statementPath = path.getStatementParent();
-                statementPath.insertAfter(
+                statementPath!.insertAfter(
                     t.expressionStatement(
-                        createRegisterDecoratorsCallExpression(path, node.id, metaPropertyList)
-                    )
+                        createRegisterDecoratorsCallExpression(path, node.id!, metaPropertyList)
+                    ) as any
                 );
             }
         },
     };
 }
 
-module.exports = {
-    decorators,
-    removeImportedDecoratorSpecifiers,
-    validateImportedLwcDecoratorUsage,
-};
+export { decorators, removeImportedDecoratorSpecifiers, validateImportedLwcDecoratorUsage };

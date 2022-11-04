@@ -4,15 +4,14 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-const { DecoratorErrors } = require('@lwc/errors');
-const {
-    LWC_PACKAGE_EXPORTS: { WIRE_DECORATOR, TRACK_DECORATOR, API_DECORATOR },
-} = require('../../constants');
-const { generateError } = require('../../utils');
+import { DecoratorErrors } from '@lwc/errors';
+import { LWC_PACKAGE_EXPORTS } from '../../constants';
+import { generateError } from '../../utils';
 
-const { isWireDecorator } = require('./shared');
+import { isWireDecorator } from './shared';
 
-function validateWireParameters(path) {
+const { WIRE_DECORATOR, TRACK_DECORATOR, API_DECORATOR } = LWC_PACKAGE_EXPORTS;
+function validateWireParameters(path: any) {
     const [id, config] = path.get('expression.arguments');
 
     if (!id) {
@@ -69,8 +68,8 @@ function validateWireParameters(path) {
     }
 }
 
-function validateUsageWithOtherDecorators(path, decorators) {
-    decorators.forEach((decorator) => {
+function validateUsageWithOtherDecorators(path: any, decorators: any) {
+    decorators.forEach((decorator: any) => {
         if (
             path !== decorator.path &&
             decorator.name === WIRE_DECORATOR &&
@@ -92,9 +91,9 @@ function validateUsageWithOtherDecorators(path, decorators) {
     });
 }
 
-module.exports = function validate(decorators) {
-    decorators.filter(isWireDecorator).forEach(({ path }) => {
+export default function validate(decorators: any) {
+    decorators.filter(isWireDecorator).forEach(({ path }: any) => {
         validateUsageWithOtherDecorators(path, decorators);
         validateWireParameters(path, decorators);
     });
-};
+}

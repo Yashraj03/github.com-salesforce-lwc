@@ -4,20 +4,20 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-const {
-    DECORATOR_TYPES,
-    LWC_COMPONENT_PROPERTIES: { PUBLIC_METHODS, PUBLIC_PROPS },
-} = require('../../constants');
+import * as t from '@babel/types';
 
-const { isApiDecorator } = require('./shared');
+import { DECORATOR_TYPES, LWC_COMPONENT_PROPERTIES } from '../../constants';
 
+import { isApiDecorator } from './shared';
+
+const { PUBLIC_METHODS, PUBLIC_PROPS } = LWC_COMPONENT_PROPERTIES;
 const PUBLIC_PROP_BIT_MASK = {
     PROPERTY: 0,
     GETTER: 1,
     SETTER: 2,
 };
 
-function getPropertyBitmask(type) {
+function getPropertyBitmask(type: any) {
     switch (type) {
         case DECORATOR_TYPES.GETTER:
             return PUBLIC_PROP_BIT_MASK.GETTER;
@@ -30,9 +30,9 @@ function getPropertyBitmask(type) {
     }
 }
 
-function getSiblingGetSetPairType(propertyName, type, classBodyItems) {
+function getSiblingGetSetPairType(propertyName: string, type: string, classBodyItems: any) {
     const siblingKind = type === DECORATOR_TYPES.GETTER ? 'set' : 'get';
-    const siblingNode = classBodyItems.find((classBodyItem) => {
+    const siblingNode = classBodyItems.find((classBodyItem: any) => {
         const isClassMethod = classBodyItem.isClassMethod({ kind: siblingKind });
         const isSamePropertyName = classBodyItem.node.key.name === propertyName;
         return isClassMethod && isSamePropertyName;
@@ -42,8 +42,8 @@ function getSiblingGetSetPairType(propertyName, type, classBodyItems) {
     }
 }
 
-function computePublicPropsConfig(publicPropertyMetas, classBodyItems) {
-    return publicPropertyMetas.reduce((acc, { propertyName, decoratedNodeType }) => {
+function computePublicPropsConfig(publicPropertyMetas: any, classBodyItems: any) {
+    return publicPropertyMetas.reduce((acc: any, { propertyName, decoratedNodeType }: any) => {
         if (!(propertyName in acc)) {
             acc[propertyName] = {};
         }
@@ -69,11 +69,11 @@ function computePublicPropsConfig(publicPropertyMetas, classBodyItems) {
     }, {});
 }
 
-module.exports = function transform(t, decoratorMetas, classBodyItems) {
+export default function transform(decoratorMetas: any, classBodyItems: any) {
     const objectProperties = [];
     const apiDecoratorMetas = decoratorMetas.filter(isApiDecorator);
     const publicPropertyMetas = apiDecoratorMetas.filter(
-        ({ decoratedNodeType }) => decoratedNodeType !== DECORATOR_TYPES.METHOD
+        ({ decoratedNodeType }: any) => decoratedNodeType !== DECORATOR_TYPES.METHOD
     );
     if (publicPropertyMetas.length) {
         const propsConfig = computePublicPropsConfig(publicPropertyMetas, classBodyItems);
@@ -83,13 +83,13 @@ module.exports = function transform(t, decoratorMetas, classBodyItems) {
     }
 
     const publicMethodMetas = apiDecoratorMetas.filter(
-        ({ decoratedNodeType }) => decoratedNodeType === DECORATOR_TYPES.METHOD
+        ({ decoratedNodeType }: any) => decoratedNodeType === DECORATOR_TYPES.METHOD
     );
     if (publicMethodMetas.length) {
-        const methodNames = publicMethodMetas.map(({ propertyName }) => propertyName);
+        const methodNames = publicMethodMetas.map(({ propertyName }: any) => propertyName);
         objectProperties.push(
             t.objectProperty(t.identifier(PUBLIC_METHODS), t.valueToNode(methodNames))
         );
     }
     return objectProperties;
-};
+}

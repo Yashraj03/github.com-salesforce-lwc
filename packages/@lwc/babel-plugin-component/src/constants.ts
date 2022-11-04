@@ -27,6 +27,7 @@ const DISALLOWED_PROP_SET = new Set(['is', 'class', 'slot', 'style']);
 
 const LWC_PACKAGE_ALIAS = 'lwc';
 
+// TODO [#9999]: Can be converted to enums
 const LWC_PACKAGE_EXPORTS = {
     BASE_COMPONENT: 'LightningElement',
     API_DECORATOR: 'api',
@@ -34,14 +35,14 @@ const LWC_PACKAGE_EXPORTS = {
     WIRE_DECORATOR: 'wire',
 };
 
-const LWC_COMPONENT_PROPERTIES = {
+const LWC_COMPONENT_PROPERTIES: Record<string, string> = {
     PUBLIC_PROPS: 'publicProps',
     PUBLIC_METHODS: 'publicMethods',
     WIRE: 'wire',
     TRACK: 'track',
 };
 
-const DECORATOR_TYPES = {
+const DECORATOR_TYPES: Record<string, string> = {
     PROPERTY: 'property',
     GETTER: 'getter',
     SETTER: 'setter',
@@ -52,7 +53,7 @@ const REGISTER_COMPONENT_ID = 'registerComponent';
 const REGISTER_DECORATORS_ID = 'registerDecorators';
 const TEMPLATE_KEY = 'tmpl';
 
-module.exports = {
+export {
     AMBIGUOUS_PROP_SET,
     DECORATOR_TYPES,
     DISALLOWED_PROP_SET,

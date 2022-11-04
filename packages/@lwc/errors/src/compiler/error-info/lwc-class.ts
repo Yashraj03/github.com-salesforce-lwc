@@ -16,6 +16,7 @@ export const LWCClassErrors = {
         code: 1121,
         message:
             'Invalid import. The argument "{0}" must be a stringLiteral for dynamic imports when strict mode is enabled.',
+        level: DiagnosticLevel.Error,
         url: '',
     },
 };
