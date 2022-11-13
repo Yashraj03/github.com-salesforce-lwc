@@ -42,18 +42,22 @@ export function createContextProvider(adapter: WireAdapterConstructor) {
     setAdapterToken(adapter, adapterContextToken);
     const providers = new WeakSet<EventTarget>();
 
-    return (elm: EventTarget, options: ContextProviderOptions) => {
-        if (providers.has(elm)) {
-            throw new Error(`Adapter was already installed on ${elm}.`);
+    return (elmOrComponent: EventTarget, options: ContextProviderOptions) => {
+        if (providers.has(elmOrComponent)) {
+            throw new Error(`Adapter was already installed on ${elmOrComponent}.`);
         }
-        providers.add(elm);
 
-        const vm = getAssociatedVMIfPresent(elm);
+        const vm = getAssociatedVMIfPresent(elmOrComponent);
         if (!vm) {
-            throw new Error(`Unable to find associated VM for ${elm}.`);
+            throw new Error(`Unable to find associated VM for ${elmOrComponent}.`);
         }
+        providers.add(elmOrComponent);
 
-        const { registerContextProvider } = vm.renderer;
+        const {
+            elm,
+            renderer: { registerContextProvider },
+        } = vm;
+
         const { consumerConnectedCallback, consumerDisconnectedCallback } = options;
 
         registerContextProvider(
