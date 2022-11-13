@@ -12,9 +12,13 @@ import {
     ContextValue,
     getAdapterToken,
     setAdapterToken,
-    WireContextRegistrationPayload,
     WireDef,
 } from './wiring';
+
+export interface WireContextRegistrationPayload {
+    setNewContext(newContext: ContextValue): void;
+    setDisconnectedCallback(disconnectCallback: () => void): void;
+}
 
 interface ContextConsumer {
     provide(newContext: ContextValue): void;

@@ -10,7 +10,6 @@ import {
     isUndefined,
     ArrayPush,
     defineProperty,
-    defineProperties,
     noop,
 } from '@lwc/shared';
 import featureFlags from '@lwc/features';
@@ -26,42 +25,11 @@ const WIRE_DEBUG_ENTRY = '@wire';
 
 const WireMetaMap: Map<PropertyDescriptor, WireDef> = new Map();
 
-export interface WireContextRegistrationPayload {
-    setNewContext(newContext: ContextValue): void;
-    setDisconnectedCallback(disconnectCallback: () => void): void;
-}
-
 interface WireDebugInfo {
     data?: any;
     config?: ConfigValue;
     context?: ContextValue;
     wasDataProvisionedForConfig: boolean;
-}
-
-// TODO: move this to engine-dom
-export class WireContextRegistrationEvent extends CustomEvent<undefined> {
-    // These are initialized on the constructor via defineProperties.
-    public readonly setNewContext!: (newContext: ContextValue) => void;
-    public readonly setDisconnectedCallback!: (disconnectCallback: () => void) => void;
-
-    constructor(
-        adapterToken: string,
-        { setNewContext, setDisconnectedCallback }: WireContextRegistrationPayload
-    ) {
-        super(adapterToken, {
-            bubbles: true,
-            composed: true,
-        });
-
-        defineProperties(this, {
-            setNewContext: {
-                value: setNewContext,
-            },
-            setDisconnectedCallback: {
-                value: setDisconnectedCallback,
-            },
-        });
-    }
 }
 
 function createFieldDataCallback(vm: VM, name: string) {
