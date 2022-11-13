@@ -18,6 +18,7 @@ import { LightningElement } from './base-lightning-element';
 import { createReactiveObserver, ReactiveObserver } from './mutation-tracker';
 import { runWithBoundaryProtection, VMState, VM } from './vm';
 import { updateComponentValue } from './update-component-value';
+import { createContextWatcher } from './context';
 
 const DeprecatedWiredElementHost = '$$DeprecatedWiredElementHostKey$$';
 const DeprecatedWiredParamsMeta = '$$DeprecatedWiredParamsMetaKey$$';
@@ -116,44 +117,6 @@ function createConfigWatcher(
         computeConfigAndUpdate,
         ro,
     };
-}
-
-function createContextWatcher(
-    vm: VM,
-    wireDef: WireDef,
-    callbackWhenContextIsReady: (newContext: ContextValue) => void
-) {
-    const { adapter } = wireDef;
-    const adapterContextToken = getAdapterToken(adapter);
-    if (isUndefined(adapterContextToken)) {
-        return; // no provider found, nothing to be done
-    }
-    const {
-        elm,
-        context: { wiredConnecting, wiredDisconnecting },
-        renderer: { dispatchEvent },
-    } = vm;
-    // waiting for the component to be connected to formally request the context via the token
-    ArrayPush.call(wiredConnecting, () => {
-        // This event is responsible for connecting the host element with another
-        // element in the composed path that is providing contextual data. The provider
-        // must be listening for a special dom event with the name corresponding to the value of
-        // `adapterContextToken`, which will remain secret and internal to this file only to
-        // guarantee that the linkage can be forged.
-        const contextRegistrationEvent = new WireContextRegistrationEvent(adapterContextToken, {
-            setNewContext(newContext: ContextValue) {
-                // eslint-disable-next-line @lwc/lwc-internal/no-invalid-todo
-                // TODO: dev-mode validation of config based on the adapter.contextSchema
-                callbackWhenContextIsReady(newContext);
-            },
-            setDisconnectedCallback(disconnectCallback: () => void) {
-                // adds this callback into the disconnect bucket so it gets disconnected from parent
-                // the the element hosting the wire is disconnected
-                ArrayPush.call(wiredDisconnecting, disconnectCallback);
-            },
-        });
-        dispatchEvent(elm, contextRegistrationEvent);
-    });
 }
 
 function createConnector(
@@ -280,7 +243,7 @@ export interface WireAdapter {
 
 export type WireAdapterSchemaValue = 'optional' | 'required';
 
-interface WireDef {
+export interface WireDef {
     method?: (data: any) => void;
     adapter: WireAdapterConstructor;
     dynamic: string[];
