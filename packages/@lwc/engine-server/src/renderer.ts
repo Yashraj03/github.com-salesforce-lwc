@@ -425,11 +425,11 @@ function registerContextConsumer(
     let currentNode: HostElement | HostShadowRoot | null = elm;
     do {
         if (currentNode[HostTypeKey] === HostNodeType.Element) {
-            const subscribeToContext = currentNode[HostContextProvidersKey].get(
+            const subscribeToProvider = currentNode[HostContextProvidersKey].get(
                 adapterContextToken
             ) as ContextRegistrationCallback | undefined;
-            if (subscribeToContext) {
-                subscribeToContext(contextRegistrationPayload);
+            if (subscribeToProvider) {
+                subscribeToProvider(contextRegistrationPayload);
                 // If we find a provider, we shouldn't continue traversing
                 // looking for another provider.
                 break;
