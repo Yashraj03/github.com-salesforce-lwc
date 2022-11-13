@@ -15,11 +15,11 @@ import {
     WireDef,
 } from './wiring';
 
-export type ContextRegistrationCallback = (
-    registrationPayload: WireContextRegistrationPayload
+export type WireContextSubscriptionCallback = (
+    subscriptionPayload: WireContextSubscriptionPayload
 ) => void;
 
-export interface WireContextRegistrationPayload {
+export interface WireContextSubscriptionPayload {
     setNewContext(newContext: ContextValue): void;
     setDisconnectedCallback(disconnectCallback: () => void): void;
 }
@@ -59,8 +59,8 @@ export function createContextProvider(adapter: WireAdapterConstructor) {
         registerContextProvider(
             elm,
             adapterContextToken!,
-            (registrationPayload: WireContextRegistrationPayload) => {
-                const { setNewContext, setDisconnectedCallback } = registrationPayload;
+            (subscriptionPayload: WireContextSubscriptionPayload) => {
+                const { setNewContext, setDisconnectedCallback } = subscriptionPayload;
                 const consumer: ContextConsumer = {
                     provide(newContext) {
                         setNewContext(newContext);

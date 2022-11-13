@@ -35,8 +35,8 @@ import {
 import { classNameToTokenList, tokenListToClassName } from './utils/classes';
 import type {
     LifecycleCallback,
-    ContextRegistrationCallback,
-    WireContextRegistrationPayload,
+    WireContextSubscriptionCallback,
+    WireContextSubscriptionPayload,
 } from '@lwc/engine-core';
 
 function unsupportedMethod(name: string): () => never {
@@ -417,7 +417,7 @@ function createCustomElement(tagName: string, upgradeCallback: LifecycleCallback
 function registerContextConsumer(
     elm: HostElement,
     adapterContextToken: string,
-    contextRegistrationPayload: WireContextRegistrationPayload
+    subscriptionPayload: WireContextSubscriptionPayload
 ) {
     // Traverse element anscestors, looking for an element that can provide context
     // for the adapter identified by `adapterContextToken`. If found, register
@@ -427,9 +427,9 @@ function registerContextConsumer(
         if (currentNode[HostTypeKey] === HostNodeType.Element) {
             const subscribeToProvider = currentNode[HostContextProvidersKey].get(
                 adapterContextToken
-            ) as ContextRegistrationCallback | undefined;
+            ) as WireContextSubscriptionCallback | undefined;
             if (subscribeToProvider) {
-                subscribeToProvider(contextRegistrationPayload);
+                subscribeToProvider(subscriptionPayload);
                 // If we find a provider, we shouldn't continue traversing
                 // looking for another provider.
                 break;
@@ -443,9 +443,9 @@ function registerContextConsumer(
 function registerContextProvider(
     elm: HostElement,
     adapterContextToken: string,
-    onRegistration: ContextRegistrationCallback
+    onContextSubscription: WireContextSubscriptionCallback
 ) {
-    elm[HostContextProvidersKey].set(adapterContextToken, onRegistration);
+    elm[HostContextProvidersKey].set(adapterContextToken, onContextSubscription);
 }
 
 export const renderer = {
