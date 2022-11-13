@@ -33,7 +33,11 @@ import {
     HostContextProvidersKey,
 } from './types';
 import { classNameToTokenList, tokenListToClassName } from './utils/classes';
-import type { LifecycleCallback, WireContextRegistrationPayload } from '@lwc/engine-core';
+import type {
+    LifecycleCallback,
+    ContextRegistrationCallback,
+    WireContextRegistrationPayload,
+} from '@lwc/engine-core';
 
 function unsupportedMethod(name: string): () => never {
     return function () {
@@ -411,19 +415,37 @@ function createCustomElement(tagName: string, upgradeCallback: LifecycleCallback
 }
 
 function registerContextConsumer(
-    _elm: HostElement,
-    _adapterContextToken: string,
-    _contextRegistrationPayload: WireContextRegistrationPayload,
+    elm: HostElement,
+    adapterContextToken: string,
+    contextRegistrationPayload: WireContextRegistrationPayload
 ) {
-    // TODO: engine-server implementation
+    // Traverse element anscestors, looking for an element that can provide context
+    // for the adapter identified by `adapterContextToken`. If found, register
+    // to receive context updates from that provider.
+    let currentNode: HostElement | HostShadowRoot | null = elm;
+    do {
+        if (currentNode[HostTypeKey] === HostNodeType.Element) {
+            const subscribeToContext = currentNode[HostContextProvidersKey].get(
+                adapterContextToken
+            ) as ContextRegistrationCallback | undefined;
+            if (subscribeToContext) {
+                subscribeToContext(contextRegistrationPayload);
+                // If we find a provider, we shouldn't continue traversing
+                // looking for another provider.
+                break;
+            }
+        }
+
+        currentNode = currentNode[HostParentKey];
+    } while (currentNode);
 }
 
 function registerContextProvider(
-    _elm: HostElement,
-    _adapterContextToken: string,
-    _onRegistration: (registrationPayload: WireContextRegistrationPayload) => void,
+    elm: HostElement,
+    adapterContextToken: string,
+    onRegistration: ContextRegistrationCallback
 ) {
-    // TODO: engine-server implementation
+    elm[HostContextProvidersKey].set(adapterContextToken, onRegistration);
 }
 
 export const renderer = {
