@@ -67,10 +67,11 @@ export interface RendererAPI {
         connectedCallback?: LifecycleCallback,
         disconnectedCallback?: LifecycleCallback
     ) => E;
-    // registerContextProvider: (
-    //     adapterContextToken: string,
-    //     onRegistration: EventListener
-    // ) => void;
+    registerContextProvider: (
+        element: E,
+        adapterContextToken: string,
+        onRegistration: (registrationPayload: WireContextRegistrationPayload) => void,
+    ) => void;
     registerContextConsumer: (
         element: E,
         adapterContextToken: string,

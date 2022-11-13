@@ -416,6 +416,14 @@ function registerContextConsumer(
     // TODO: engine-server implementation
 }
 
+function registerContextProvider(
+    _elm: HostElement,
+    _adapterContextToken: string,
+    _onRegistration: (registrationPayload: WireContextRegistrationPayload) => void,
+) {
+    // TODO: engine-server implementation
+}
+
 export const renderer = {
     isNativeShadowDefined,
     isSyntheticShadowDefined,
@@ -455,4 +463,5 @@ export const renderer = {
     insertStylesheet,
     assertInstanceOfHTMLElement,
     registerContextConsumer,
+    registerContextProvider,
 };

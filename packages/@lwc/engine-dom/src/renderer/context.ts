@@ -1,5 +1,5 @@
 import { defineProperties } from '@lwc/shared';
-import { dispatchEvent } from './index';
+import { addEventListener, dispatchEvent } from './index';
 import type {
     WireContextValue,
     WireContextRegistrationPayload,
@@ -41,5 +41,24 @@ export function registerContextConsumer(
             adapterContextToken,
             contextRegistrationPayload,
         )
+    );
+}
+
+export function registerContextProvider(
+    elm: Node,
+    adapterContextToken: string,
+    onRegistration: (registrationPayload: WireContextRegistrationPayload) => void,
+) {
+    addEventListener(
+        elm,
+        adapterContextToken,
+        ((evt: WireContextRegistrationEvent) => {
+            const { setNewContext, setDisconnectedCallback } = evt;
+            onRegistration({
+                setNewContext,
+                setDisconnectedCallback,
+            })
+            evt.stopImmediatePropagation();
+        }) as EventListener,
     );
 }

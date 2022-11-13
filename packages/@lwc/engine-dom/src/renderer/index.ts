@@ -241,7 +241,10 @@ function assertInstanceOfHTMLElement(elm: any, msg: string) {
     assert.invariant(elm instanceof HTMLElement, msg);
 }
 
-export { registerContextConsumer } from './context';
+export {
+    registerContextConsumer,
+    registerContextProvider,
+} from './context';
 
 export {
     insert,

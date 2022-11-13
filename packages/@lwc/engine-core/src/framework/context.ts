@@ -6,13 +6,13 @@
  */
 import { isUndefined, ArrayPush } from '@lwc/shared';
 import { guid } from './utils';
-import { VM } from './vm';
+import { VM, getAssociatedVMIfPresent } from './vm';
 import {
     WireAdapterConstructor,
     ContextValue,
     getAdapterToken,
     setAdapterToken,
-    WireContextRegistrationEvent,
+    WireContextRegistrationPayload,
     WireDef,
 } from './wiring';
 
@@ -41,12 +41,19 @@ export function createContextProvider(adapter: WireAdapterConstructor) {
         }
         providers.add(elm);
 
-        const { consumerConnectedCallback, consumerDisconnectedCallback } = options;
-        elm.addEventListener(
-            adapterContextToken as string,
-            ((evt: WireContextRegistrationEvent) => {
-                const { setNewContext, setDisconnectedCallback } = evt;
+        const vm = getAssociatedVMIfPresent(elm);
+        if (!vm) {
+            throw new Error(`Unable to find associated VM for ${elm}.`);
+        }
 
+        const { registerContextProvider } = vm.renderer;
+        const { consumerConnectedCallback, consumerDisconnectedCallback } = options;
+
+        registerContextProvider(
+            elm,
+            adapterContextToken!,
+            (registrationPayload: WireContextRegistrationPayload) => {
+                const { setNewContext, setDisconnectedCallback } = registrationPayload;
                 const consumer: ContextConsumer = {
                     provide(newContext) {
                         setNewContext(newContext);
@@ -60,8 +67,7 @@ export function createContextProvider(adapter: WireAdapterConstructor) {
                 setDisconnectedCallback(disconnectCallback);
 
                 consumerConnectedCallback(consumer);
-                evt.stopImmediatePropagation();
-            }) as EventListener
+            },
         );
     };
 }
