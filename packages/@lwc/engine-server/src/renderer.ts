@@ -25,14 +25,19 @@ import {
     HostTypeKey,
     HostNamespaceKey,
     HostParentKey,
-    HostEventListenersKey,
     HostShadowRootKey,
+    HostShadowRoot,
     HostAttributesKey,
     HostChildrenKey,
     HostValueKey,
+    HostContextProvidersKey,
 } from './types';
 import { classNameToTokenList, tokenListToClassName } from './utils/classes';
-import type { LifecycleCallback, WireContextRegistrationPayload } from '@lwc/engine-core';
+import type {
+    LifecycleCallback,
+    WireContextSubscriptionCallback,
+    WireContextSubscriptionPayload,
+} from '@lwc/engine-core';
 
 function unsupportedMethod(name: string): () => never {
     return function () {
@@ -49,7 +54,7 @@ function createElement(tagName: string, namespace?: string): HostElement {
         [HostShadowRootKey]: null,
         [HostChildrenKey]: [],
         [HostAttributesKey]: [],
-        [HostEventListenersKey]: {},
+        [HostContextProvidersKey]: new Map(),
     };
 }
 
@@ -133,6 +138,7 @@ function attachShadow(element: E, config: ShadowRootInit) {
     element[HostShadowRootKey] = {
         [HostTypeKey]: HostNodeType.ShadowRoot,
         [HostChildrenKey]: [],
+        [HostParentKey]: element,
         mode: config.mode,
         delegatesFocus: !!config.delegatesFocus,
     };
@@ -409,19 +415,37 @@ function createCustomElement(tagName: string, upgradeCallback: LifecycleCallback
 }
 
 function registerContextConsumer(
-    _elm: HostElement,
-    _adapterContextToken: string,
-    _contextRegistrationPayload: WireContextRegistrationPayload,
+    elm: HostElement,
+    adapterContextToken: string,
+    subscriptionPayload: WireContextSubscriptionPayload
 ) {
-    // TODO: engine-server implementation
+    // Traverse element anscestors, looking for an element that can provide context
+    // for the adapter identified by `adapterContextToken`. If found, register
+    // to receive context updates from that provider.
+    let currentNode: HostElement | HostShadowRoot | null = elm;
+    do {
+        if (currentNode[HostTypeKey] === HostNodeType.Element) {
+            const subscribeToProvider = currentNode[HostContextProvidersKey].get(
+                adapterContextToken
+            ) as WireContextSubscriptionCallback | undefined;
+            if (subscribeToProvider) {
+                subscribeToProvider(subscriptionPayload);
+                // If we find a provider, we shouldn't continue traversing
+                // looking for another provider.
+                break;
+            }
+        }
+
+        currentNode = currentNode[HostParentKey];
+    } while (currentNode);
 }
 
 function registerContextProvider(
-    _elm: HostElement,
-    _adapterContextToken: string,
-    _onRegistration: (registrationPayload: WireContextRegistrationPayload) => void,
+    elm: HostElement,
+    adapterContextToken: string,
+    onContextSubscription: WireContextSubscriptionCallback
 ) {
-    // TODO: engine-server implementation
+    elm[HostContextProvidersKey].set(adapterContextToken, onContextSubscription);
 }
 
 export const renderer = {
