@@ -25,11 +25,12 @@ import {
     HostTypeKey,
     HostNamespaceKey,
     HostParentKey,
-    HostEventListenersKey,
     HostShadowRootKey,
+    HostShadowRoot,
     HostAttributesKey,
     HostChildrenKey,
     HostValueKey,
+    HostContextProvidersKey,
 } from './types';
 import { classNameToTokenList, tokenListToClassName } from './utils/classes';
 import type { LifecycleCallback, WireContextRegistrationPayload } from '@lwc/engine-core';
@@ -49,7 +50,7 @@ function createElement(tagName: string, namespace?: string): HostElement {
         [HostShadowRootKey]: null,
         [HostChildrenKey]: [],
         [HostAttributesKey]: [],
-        [HostEventListenersKey]: {},
+        [HostContextProvidersKey]: new Map(),
     };
 }
 
@@ -133,6 +134,7 @@ function attachShadow(element: E, config: ShadowRootInit) {
     element[HostShadowRootKey] = {
         [HostTypeKey]: HostNodeType.ShadowRoot,
         [HostChildrenKey]: [],
+        [HostParentKey]: element,
         mode: config.mode,
         delegatesFocus: !!config.delegatesFocus,
     };
