@@ -32,7 +32,7 @@ import {
     HostValueKey,
 } from './types';
 import { classNameToTokenList, tokenListToClassName } from './utils/classes';
-import type { LifecycleCallback } from '@lwc/engine-core';
+import type { LifecycleCallback, WireContextRegistrationPayload } from '@lwc/engine-core';
 
 function unsupportedMethod(name: string): () => never {
     return function () {
@@ -408,6 +408,14 @@ function createCustomElement(tagName: string, upgradeCallback: LifecycleCallback
     return new (UpgradableConstructor as any)(upgradeCallback);
 }
 
+function registerContextConsumer(
+    _elm: HostElement,
+    _adapterContextToken: string,
+    _contextRegistrationPayload: WireContextRegistrationPayload,
+) {
+    // TODO: engine-server implementation
+}
+
 export const renderer = {
     isNativeShadowDefined,
     isSyntheticShadowDefined,
@@ -446,4 +454,5 @@ export const renderer = {
     isConnected,
     insertStylesheet,
     assertInstanceOfHTMLElement,
+    registerContextConsumer,
 };

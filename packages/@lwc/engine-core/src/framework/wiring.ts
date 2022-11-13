@@ -26,7 +26,7 @@ const WIRE_DEBUG_ENTRY = '@wire';
 
 const WireMetaMap: Map<PropertyDescriptor, WireDef> = new Map();
 
-interface WireContextInternalEventPayload {
+export interface WireContextRegistrationPayload {
     setNewContext(newContext: ContextValue): void;
     setDisconnectedCallback(disconnectCallback: () => void): void;
 }
@@ -38,6 +38,7 @@ interface WireDebugInfo {
     wasDataProvisionedForConfig: boolean;
 }
 
+// TODO: move this to engine-dom
 export class WireContextRegistrationEvent extends CustomEvent<undefined> {
     // These are initialized on the constructor via defineProperties.
     public readonly setNewContext!: (newContext: ContextValue) => void;
@@ -45,7 +46,7 @@ export class WireContextRegistrationEvent extends CustomEvent<undefined> {
 
     constructor(
         adapterToken: string,
-        { setNewContext, setDisconnectedCallback }: WireContextInternalEventPayload
+        { setNewContext, setDisconnectedCallback }: WireContextRegistrationPayload
     ) {
         super(adapterToken, {
             bubbles: true,
