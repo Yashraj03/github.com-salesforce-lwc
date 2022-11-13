@@ -15,8 +15,9 @@ import {
     WireDef,
 } from './wiring';
 
-export type ContextRegistrationCallback =
-    (registrationPayload: WireContextRegistrationPayload) => void;
+export type ContextRegistrationCallback = (
+    registrationPayload: WireContextRegistrationPayload
+) => void;
 
 export interface WireContextRegistrationPayload {
     setNewContext(newContext: ContextValue): void;
@@ -32,7 +33,6 @@ interface ContextProviderOptions {
     consumerDisconnectedCallback?: (consumer: ContextConsumer) => void;
 }
 
-// this is lwc internal implementation
 export function createContextProvider(adapter: WireAdapterConstructor) {
     let adapterContextToken = getAdapterToken(adapter);
     if (!isUndefined(adapterContextToken)) {
@@ -74,7 +74,7 @@ export function createContextProvider(adapter: WireAdapterConstructor) {
                 setDisconnectedCallback(disconnectCallback);
 
                 consumerConnectedCallback(consumer);
-            },
+            }
         );
     };
 }
@@ -96,27 +96,24 @@ export function createContextWatcher(
     } = vm;
     // waiting for the component to be connected to formally request the context via the token
     ArrayPush.call(wiredConnecting, () => {
-        // TODO: update this comment
-        // This event is responsible for connecting the host element with another
-        // element in the composed path that is providing contextual data. The provider
-        // must be listening for a special dom event with the name corresponding to the value of
-        // `adapterContextToken`, which will remain secret and internal to this file only to
-        // guarantee that the linkage can be forged.
-        registerContextConsumer(
-            elm,
-            adapterContextToken,
-            {
-                setNewContext(newContext: ContextValue) {
-                    // eslint-disable-next-line @lwc/lwc-internal/no-invalid-todo
-                    // TODO: dev-mode validation of config based on the adapter.contextSchema
-                    callbackWhenContextIsReady(newContext);
-                },
-                setDisconnectedCallback(disconnectCallback: () => void) {
-                    // adds this callback into the disconnect bucket so it gets disconnected from parent
-                    // the the element hosting the wire is disconnected
-                    ArrayPush.call(wiredDisconnecting, disconnectCallback);
-                },
-            }
-        );
+        // This will attempt to connect the current element with one of its anscestors
+        // that can provide context for the given wire adapter. This relationship is
+        // keyed on the secret & internal value of `adapterContextToken`, which is unique
+        // to a given wire adapter.
+        //
+        // Depending on the runtime environment, this connection is made using either DOM
+        // events (in the browser) or a custom traversal (on the server).
+        registerContextConsumer(elm, adapterContextToken, {
+            setNewContext(newContext: ContextValue) {
+                // eslint-disable-next-line @lwc/lwc-internal/no-invalid-todo
+                // TODO: dev-mode validation of config based on the adapter.contextSchema
+                callbackWhenContextIsReady(newContext);
+            },
+            setDisconnectedCallback(disconnectCallback: () => void) {
+                // adds this callback into the disconnect bucket so it gets disconnected from parent
+                // the the element hosting the wire is disconnected
+                ArrayPush.call(wiredDisconnecting, disconnectCallback);
+            },
+        });
     });
 }
