@@ -15,6 +15,9 @@ import {
     WireDef,
 } from './wiring';
 
+export type ContextRegistrationCallback =
+    (registrationPayload: WireContextRegistrationPayload) => void;
+
 export interface WireContextRegistrationPayload {
     setNewContext(newContext: ContextValue): void;
     setDisconnectedCallback(disconnectCallback: () => void): void;

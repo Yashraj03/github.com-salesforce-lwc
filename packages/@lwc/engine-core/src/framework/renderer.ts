@@ -4,7 +4,10 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import type { WireContextRegistrationPayload } from './context';
+import type {
+    WireContextRegistrationPayload,
+    ContextRegistrationCallback,
+} from './context';
 
 export type HostNode = any;
 export type HostElement = any;
@@ -70,7 +73,7 @@ export interface RendererAPI {
     registerContextProvider: (
         element: E,
         adapterContextToken: string,
-        onRegistration: (registrationPayload: WireContextRegistrationPayload) => void,
+        onRegistration: ContextRegistrationCallback,
     ) => void;
     registerContextConsumer: (
         element: E,
