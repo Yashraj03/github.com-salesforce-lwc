@@ -6,7 +6,7 @@
  */
 
 // Public APIs -------------------------------------------------------------------------------------
-export { createContextProvider } from './context-provider';
+export { createContextProvider } from './context';
 export { LightningElement } from './base-lightning-element';
 export { register } from './services';
 
