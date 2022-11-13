@@ -56,3 +56,7 @@ export type {
     WireAdapterConstructor,
     WireAdapterSchemaValue,
 } from './wiring';
+export type {
+    WireContextRegistrationPayload,
+    ContextRegistrationCallback,
+} from './context';

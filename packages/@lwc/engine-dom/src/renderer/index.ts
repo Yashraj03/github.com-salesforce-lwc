@@ -242,6 +242,11 @@ function assertInstanceOfHTMLElement(elm: any, msg: string) {
 }
 
 export {
+    registerContextConsumer,
+    registerContextProvider,
+} from './context';
+
+export {
     insert,
     remove,
     cloneNode,
