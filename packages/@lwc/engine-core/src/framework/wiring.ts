@@ -4,14 +4,7 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import {
-    assert,
-    create,
-    isUndefined,
-    ArrayPush,
-    defineProperty,
-    noop,
-} from '@lwc/shared';
+import { assert, create, isUndefined, ArrayPush, defineProperty, noop } from '@lwc/shared';
 import featureFlags from '@lwc/features';
 import { LightningElement } from './base-lightning-element';
 import { createReactiveObserver, ReactiveObserver } from './mutation-tracker';
@@ -156,7 +149,6 @@ function createConnector(
             noop,
             () => {
                 // job
-
                 if (process.env.NODE_ENV !== 'production') {
                     debugInfo.config = config;
                     debugInfo.context = context;
